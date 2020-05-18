@@ -131,3 +131,7 @@ dmypy.json
 # OSX specific files
 __MACOSX
 .DS_Store
+
+# Ignore archive files
+*.zip
+*.tgz
