@@ -12,6 +12,7 @@ a Stand alone Spark cluster with one master and two executors.
 * Java 1.8.x / Scala 2.11.x / Spark 2.4.x : Only for spark-submit
 * Kafka
 * Python 3.7
+* The input json files from Udacity are BYO because GitHub was rejecting the commits including them.
 
 ## Installing the local environment
 
