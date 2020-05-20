@@ -1,4 +1,13 @@
-findspark
-pyspark
-python-dateutil
-pathlib
+Package         Version            
+--------------- -------------------
+certifi         2020.4.5.1         
+confluent-kafka 1.4.1              
+findspark       1.3.0              
+pathlib         1.0.1              
+pip             20.0.2             
+py4j            0.10.7             
+pyspark         2.4.5              
+python-dateutil 2.8.1              
+setuptools      46.4.0.post20200518
+six             1.14.0             
+wheel           0.34.2             
