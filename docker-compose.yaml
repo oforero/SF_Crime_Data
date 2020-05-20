@@ -56,55 +56,6 @@ services:
     - "kafka0"
     - "schema-registry"
 
-  connect:
-    image: confluentinc/cp-kafka-connect:5.2.2
-    ports:
-    - "8083:8083"
-    environment:
-      CONNECT_BOOTSTRAP_SERVERS: "PLAINTEXT://kafka0:19092"
-      CONNECT_GROUP_ID: "connect"
-      CONNECT_REST_ADVERTISED_HOST_NAME: "connect"
-      CONNECT_PLUGIN_PATH: "/usr/share/java"
-      CONNECT_INTERNAL_KEY_CONVERTER: "org.apache.kafka.connect.json.JsonConverter"
-      CONNECT_INTERNAL_VALUE_CONVERTER: "org.apache.kafka.connect.json.JsonConverter"
-      CONNECT_KEY_CONVERTER: "io.confluent.connect.avro.AvroConverter"
-      CONNECT_KEY_CONVERTER_SCHEMA_REGISTRY_URL: "http://schema-registry:8081"
-      CONNECT_VALUE_CONVERTER: "io.confluent.connect.avro.AvroConverter"
-      CONNECT_VALUE_CONVERTER_SCHEMA_REGISTRY_URL: "http://schema-registry:8081"
-      CONNECT_CONFIG_STORAGE_TOPIC: "connect-config"
-      CONNECT_OFFSET_STORAGE_TOPIC: "connect-offset"
-      CONNECT_STATUS_STORAGE_TOPIC: "connect-status"
-      CONNECT_CONFIG_STORAGE_REPLICATION_FACTOR: "1"
-      CONNECT_OFFSET_STORAGE_REPLICATION_FACTOR: "1"
-      CONNECT_STATUS_STORAGE_REPLICATION_FACTOR: "1"
-    depends_on:
-    - "kafka0"
-    - "schema-registry"
-
-  ksql:
-    image: confluentinc/cp-ksql-server:5.2.2
-    ports:
-    - "8088:8088"
-    environment:
-      KSQL_BOOTSTRAP_SERVERS: "PLAINTEXT://kafka0:19092"
-      KSQL_LISTENERS: "http://0.0.0.0:8088"
-      KSQL_KSQL_SERVICE_ID: "ksql_service_docker"
-      KSQL_KSQL_SCHEMA_REGISTRY_URL: "http://schema-registry:8081/"
-    depends_on:
-    - "kafka0"
-    - "schema-registry"
-
-  connect-ui:
-    image: landoop/kafka-connect-ui:0.9.7
-    ports:
-    - "8084:8084"
-    environment:
-      PORT: "8084"
-      PROXY: "true"
-      CONNECT_URL: "http://connect:8083"
-    depends_on:
-    - "connect"
-
   topics-ui:
     image: landoop/kafka-topics-ui:0.9.4
     ports:
@@ -127,14 +78,31 @@ services:
     depends_on:
     - "schema-registry"
 
-  postgres:
-    image: postgres:11
+  spark-master:
+      image: bde2020/spark-master:2.4.5-hadoop2.7
+      container_name: spark-master
+      ports:
+        - "8080:8080"
+        - "7077:7077"
+      environment:
+        - INIT_DAEMON_STEP=setup_spark
+
+  spark-worker-1:
+    image: bde2020/spark-worker:2.4.5-hadoop2.7
+    container_name: spark-worker-1
+    depends_on:
+      - spark-master
     ports:
-    - "5432:5432"
+      - "9081:8081"
     environment:
-      POSTGRES_USER: "cta_admin"
-      POSTGRES_PASSWORD: "chicago"
-      POSTGRES_DB: "cta"
-    volumes:
-    - ./producers/data/cta_stations.csv:/tmp/cta_stations.csv
-    - ./load_stations.sql:/docker-entrypoint-initdb.d/load_stations.sql
+      - "SPARK_MASTER=spark://spark-master:7077"
+  
+  spark-worker-2:
+    image: bde2020/spark-worker:2.4.5-hadoop2.7
+    container_name: spark-worker-2
+    depends_on:
+      - spark-master
+    ports:
+      - "9082:8081"
+    environment:
+      - "SPARK_MASTER=spark://spark-master:7077"
